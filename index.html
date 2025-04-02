@@ -21,6 +21,10 @@
             padding: 15px;
             margin: 0;
             color: #04548c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
         .info {
             font-size: 1.5em;
@@ -64,20 +68,20 @@
             color: #04548c;
         }
         .error-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             background-color: red;
             color: white;
             padding: 5px 10px;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <a href="https://wa.me/farmaciapintar.com" class="error-btn">Reportar un error</a>
-    <h1>Farmacia de Turno</h1>
+    <h1>
+        Farmacia de Turno
+        <a href="https://wa.me/farmaciapintar.com" class="error-btn">Reportar un error</a>
+    </h1>
     <div class="container">
         <div class="info" id="farmaciaInfo">
             FARMACIA DE TURNO: <span id="farmaciaNombre"></span><br>
@@ -103,16 +107,16 @@
             'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'https://maps.google.com?q=Av.+Sarmiento+2393' },
             'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'https://maps.google.com?q=Av.+Balbin+3554' }
         };
-        
+
         function obtenerFarmacia(dia, mes) {
             const farmaciasSemana = ['MITRE', 'SARMIENTO', 'VAZQUEZ', 'PINTAR', 'CALPE'];
             const farmaciasSabado = ['MITRE', 'CALPE', 'SARMIENTO', 'VAZQUEZ', 'PINTAR'];
             const farmaciasDomingo = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
-            
+
             let fecha = new Date(new Date().getFullYear(), mes - 1, dia);
             let diaSemana = fecha.getDay();
             let semanasTranscurridas = Math.floor((fecha - new Date(new Date().getFullYear(), 1, 1)) / (1000 * 60 * 60 * 24 * 7));
-            
+
             if (diaSemana >= 1 && diaSemana <= 5) {
                 return farmaciasSemana[diaSemana - 1];
             } else if (diaSemana === 6) {
@@ -122,7 +126,7 @@
             }
             return 'Desconocido';
         }
-        
+
         function mostrarTurnoHoy() {
             let hoy = new Date();
             let farmaciaHoy = obtenerFarmacia(hoy.getDate(), hoy.getMonth() + 1);
@@ -132,7 +136,7 @@
             document.getElementById('llamar').onclick = () => window.location.href = `tel:${farmacias[farmaciaHoy]?.telefono}`;
             document.getElementById('verMapa').onclick = () => window.open(farmacias[farmaciaHoy]?.mapa, '_blank');
         }
-        
+
         function generarCalendarioMes() {
             const listaTurnos = document.getElementById('listaTurnos');
             listaTurnos.innerHTML = '';
@@ -147,10 +151,11 @@
             }
             document.getElementById('calendario').style.display = 'block';
         }
-        
+
         document.getElementById('verCalendario').onclick = generarCalendarioMes;
-        
+
         document.addEventListener('DOMContentLoaded', mostrarTurnoHoy);
     </script>
 </body>
 </html>
+
