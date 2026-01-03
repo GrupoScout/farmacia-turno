@@ -19,20 +19,12 @@
         .menu { display: none; position: fixed; top: 50px; right: 10px; background-color: white; color: #04548c; padding: 10px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; text-align: left; }
         .menu a { display: block; color: #04548c; text-decoration: none; padding: 8px 0; font-weight: bold; border-bottom: 1px solid #ddd; }
         
-        /* Contador en la esquina inferior derecha */
+        /* Contador estético */
         #visit-counter { 
-            position: fixed; 
-            bottom: 10px; 
-            right: 10px; 
-            background: rgba(255, 255, 255, 0.9); 
-            color: #04548c; 
-            padding: 5px 10px; 
-            border-radius: 5px; 
-            font-size: 12px; 
-            font-weight: bold; 
-            border: 1px solid #81e1ee; 
-            z-index: 2000; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            position: fixed; bottom: 10px; right: 10px; 
+            background: rgba(255, 255, 255, 0.95); color: #04548c; 
+            padding: 8px 12px; border-radius: 8px; font-size: 13px; 
+            font-weight: bold; border: 2px solid #81e1ee; z-index: 2000; 
         }
 
         @media (max-width: 600px) { h1 { font-size: 1.4em; padding: 20px 10px 40px 10px; } }
@@ -66,55 +58,65 @@
 
     <div class="footer">GENTILEZA DE FARMACIA PINTAR | AV. REMIGIO LOPEZ 2393 | TEL 4455-5502 | 30 AÑOS 1994-2024</div>
 
-    <div id="visit-counter">Visitas este mes: <span id="count">...</span></div>
+    <div id="visit-counter">Visitas este mes: <span id="count">0</span></div>
 
     <script>
         const farmacias = {
-            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'https://maps.google.com?q=Av.+Balbin+4247' },
-            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'https://maps.google.com?q=Av.+R.+Lopez+3222' },
-            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'https://maps.google.com?q=Av.+Balbin+4702' },
-            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'https://maps.google.com?q=Av.+Sarmiento+2393' },
-            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'https://maps.google.com?q=Av.+Balbin+3554' }
+            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'http://maps.google.com/?q=Av+Balbin+4247' },
+            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'http://maps.google.com/?q=Av+Remigio+Lopez+3222' },
+            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'http://maps.google.com/?q=Av+Balbin+4702' },
+            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'http://maps.google.com/?q=Av+Sarmiento+2393' },
+            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'http://maps.google.com/?q=Av+Balbin+3554' }
         };
 
-        // LÓGICA DE TURNOS SEGÚN TU CALENDARIO FÍSICO
         function obtenerFarmacia(dia, mes) {
             const fecha = new Date(2026, mes - 1, dia);
             const diaSemana = fecha.getDay(); 
             const rotacion = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
             
-            // Lunes a Viernes Fijos
             if (diaSemana >= 1 && diaSemana <= 5) {
                 const fijos = {1:'MITRE', 2:'SARMIENTO', 3:'VAZQUEZ', 4:'PINTAR', 5:'CALPE'};
                 return fijos[diaSemana];
             }
 
-            // Sábados y Domingos rotativos
             let contadorSab = 0, contadorDom = 0;
             for (let d = new Date(2026, 0, 1); d <= fecha; d.setDate(d.getDate() + 1)) {
                 if (d.getDay() === 6) contadorSab++;
                 if (d.getDay() === 0) contadorDom++;
             }
             
-            // Lógica: 3/1 Sábado es Vázquez (0). 4/1 Domingo es Calpe (3).
             if (diaSemana === 6) return rotacion[(contadorSab - 1) % 5];
             if (diaSemana === 0) return rotacion[(contadorDom + 2) % 5];
         }
 
-        // CONTADOR DE VISITAS REAL (Mensual)
-        function cargarContador() {
-            const fecha = new Date();
-            const idUnico = `farmacia-pintar-${fecha.getMonth() + 1}-${fecha.getFullYear()}`;
+        // CONTADOR INTELIGENTE (1 EN 1 + SALTO EL DÍA 2)
+        function gestionarContador() {
+            const hoy = new Date();
+            const mesActual = hoy.getMonth();
+            const diaActual = hoy.getDate();
+            const storageKey = 'contador_visitas_farmacia';
+            const storageMonthKey = 'mes_contador';
+
+            // Si cambiamos de mes, reiniciamos el conteo
+            if (localStorage.getItem(storageMonthKey) != mesActual) {
+                localStorage.setItem(storageMonthKey, mesActual);
+                localStorage.setItem(storageKey, '0');
+            }
+
+            // Obtenemos el valor actual guardado
+            let visitas = parseInt(localStorage.getItem(storageKey)) || 0;
             
-            // Usamos un servicio de contador gratuito que funciona en cualquier lado
-            fetch(`https://api.countapi.xyz/hit/farmaciapintar.com/${idUnico}`)
-                .then(res => res.json())
-                .then(res => {
-                    document.getElementById('count').innerText = res.value;
-                })
-                .catch(() => {
-                    document.getElementById('count').innerText = "1";
-                });
+            // Sumamos 1 por esta visita
+            visitas++;
+            localStorage.setItem(storageKey, visitas.toString());
+
+            // Si es día 2 o más, mostramos el número + el "bono" de 250
+            let mostrarEnPantalla = visitas;
+            if (diaActual >= 2) {
+                mostrarEnPantalla += 250;
+            }
+
+            document.getElementById('count').innerText = mostrarEnPantalla;
         }
 
         function toggleMenu() {
@@ -147,8 +149,9 @@
 
         window.onload = () => {
             mostrarTurnoHoy();
-            cargarContador();
+            gestionarContador();
         };
     </script>
 </body>
 </html>
+
