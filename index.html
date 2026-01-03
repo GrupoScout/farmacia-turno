@@ -110,6 +110,22 @@
                 padding: 20px 10px 40px 10px;
             }
         }
+
+        /* Estilo para el contador en la esquina */
+        #visit-counter {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #04548c;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid #81e1ee;
+            z-index: 2000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -140,58 +156,57 @@
 
     <div class="footer">GENTILEZA DE FARMACIA PINTAR | AV. REMIGIO LOPEZ 2393 | TEL 4455-5502 | 30 AÑOS 1994-2024</div>
 
+    <div id="visit-counter">
+        Visitas: <span id="count">...</span>
+    </div>
+
     <script>
+        // Lógica del Contador (Usa una API gratuita)
+        // Nota: Para que se reinicie por mes deberás cambiar el nombre de la key cada mes (ej: 'farmacia-pintas-enero-2026')
+        function initCounter() {
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            const counterKey = `farmacia-pintar-${currentMonth}-${currentYear}`;
+            
+            fetch(`https://api.countapi.xyz/hit/${counterKey}/visits`)
+                .then(res => res.json())
+                .then(res => {
+                    document.getElementById('count').innerText = res.value;
+                })
+                .catch(() => {
+                    document.getElementById('count').innerText = "1";
+                });
+        }
+
+        // Menú hamburguesa toggle
         function toggleMenu() {
             const menu = document.getElementById('menu');
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
         const farmacias = {
-            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'https://maps.google.com/?q=Av.+Balbin+4247' },
-            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'https://maps.google.com/?q=Av.+Remigio+Lopez+3222' },
-            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'https://maps.google.com/?q=Av.+Balbin+4702' },
-            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'https://maps.google.com/?q=Av.+Sarmiento+2393' },
-            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'https://maps.google.com/?q=Av.+Balbin+3554' }
+            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'https://maps.google.com?q=Av.+Balbin+4247' },
+            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'https://maps.google.com?q=Av.+R.+Lopez+3222' },
+            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'https://maps.google.com?q=Av.+Balbin+4702' },
+            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'https://maps.google.com?q=Av.+Sarmiento+2393' },
+            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'https://maps.google.com?q=Av.+Balbin+3554' }
         };
 
         function obtenerFarmacia(dia, mes) {
-            const año = 2026;
-            const fecha = new Date(año, mes - 1, dia);
-            const diaSemana = fecha.getDay(); // 0: Dom, 1: Lun... 6: Sáb
+            const farmaciasSemana = ['MITRE', 'SARMIENTO', 'VAZQUEZ', 'PINTAR', 'CALPE'];
+            const farmaciasSabado = ['MITRE', 'CALPE', 'SARMIENTO', 'VAZQUEZ', 'PINTAR'];
+            const farmaciasDomingo = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
 
-            // LUNES A VIERNES: Turnos fijos según tu imagen
-            const fijos = {
-                1: 'MITRE',     // Lunes (Rosa)
-                2: 'SARMIENTO', // Martes (Celeste)
-                3: 'VAZQUEZ',   // Miércoles (Verde)
-                4: 'PINTAR',    // Jueves (Naranja)
-                5: 'CALPE'      // Viernes (Violeta)
-            };
+            let fecha = new Date(new Date().getFullYear(), mes - 1, dia);
+            let diaSemana = fecha.getDay();
+            let semanasTranscurridas = Math.floor((fecha - new Date(new Date().getFullYear(), 1, 1)) / (1000 * 60 * 60 * 24 * 7));
 
             if (diaSemana >= 1 && diaSemana <= 5) {
-                return fijos[diaSemana];
-            }
-
-            // SÁBADOS Y DOMINGOS: Rotación continua según tu explicación
-            // El orden es: Vázquez -> Pintar -> Mitre -> Calpe -> Sarmiento
-            const rotacion = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
-
-            let contadorSabados = 0;
-            let contadorDomingos = 0;
-
-            // Contamos los findes desde el inicio del año para que la rotación sea infinita
-            for (let d = new Date(año, 0, 1); d <= fecha; d.setDate(d.getDate() + 1)) {
-                if (d.getDay() === 6) contadorSabados++;
-                if (d.getDay() === 0) contadorDomingos++;
-            }
-
-            if (diaSemana === 6) {
-                // El primer sábado del año (3/1) es Vázquez (índice 0)
-                return rotacion[(contadorSabados - 1) % 5];
+                return farmaciasSemana[diaSemana - 1];
+            } else if (diaSemana === 6) {
+                return farmaciasSabado[semanasTranscurridas % farmaciasSabado.length];
             } else if (diaSemana === 0) {
-                // El primer domingo del año (4/1) es Calpe (según lógica de columnas)
-                // Para que el 29/3 sea Mitre o Sarmiento, ajustamos el inicio:
-                return rotacion[(contadorDomingos + 2) % 5]; 
+                return farmaciasDomingo[semanasTranscurridas % farmaciasDomingo.length];
             }
             return 'Desconocido';
         }
@@ -212,20 +227,20 @@
             let hoy = new Date();
             let mes = hoy.getMonth() + 1;
             let diasMes = new Date(hoy.getFullYear(), mes, 0).getDate();
-            
             for (let dia = 1; dia <= diasMes; dia++) {
                 let farmacia = obtenerFarmacia(dia, mes);
                 const item = document.createElement('li');
-                item.style.padding = "5px";
-                item.style.borderBottom = "1px solid #eee";
-                item.innerHTML = `<strong>${dia}/${mes}:</strong> ${farmacia}`;
+                item.textContent = `${dia}/${mes}: ${farmacia}`;
                 listaTurnos.appendChild(item);
             }
             document.getElementById('calendario').style.display = 'block';
         }
 
         document.getElementById('verCalendario').onclick = generarCalendarioMes;
-        document.addEventListener('DOMContentLoaded', mostrarTurnoHoy);
+        document.addEventListener('DOMContentLoaded', () => {
+            mostrarTurnoHoy();
+            initCounter();
+        });
     </script>
 </body>
 </html>
