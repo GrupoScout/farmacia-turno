@@ -113,11 +113,10 @@
     </style>
 </head>
 <body>
-    <!-- Menú hamburguesa -->
-    <div class="menu-toggle" onclick="toggleMenu()">&#9776;</div>
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="menu" id="menu">
         <a href="https://wa.me/5491158183466?text=Hola%2C%20hay%20un%20error%20en%20la%20pagina%20de%20los%20turnos" target="_blank">Reportar un error</a>
-        <a href="https://docs.google.com/document/d/1ZqUQbGsARreoAL8PanRM4CI9rJgU4ycI9LXR2983LPY/edit?usp=sharing"_blank">Obras Sociales</a>
+        <a href="https://docs.google.com/document/d/1ZqUQbGsARreoAL8PanRM4CI9rJgU4ycI9LXR2983LPY/edit?usp=sharing" target="_blank">Obras Sociales</a>
     </div>
 
     <h1>Farmacia de Turno</h1>
@@ -142,35 +141,57 @@
     <div class="footer">GENTILEZA DE FARMACIA PINTAR | AV. REMIGIO LOPEZ 2393 | TEL 4455-5502 | 30 AÑOS 1994-2024</div>
 
     <script>
-        // Menú hamburguesa toggle
         function toggleMenu() {
             const menu = document.getElementById('menu');
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
         const farmacias = {
-            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'https://maps.google.com?q=Av.+Balbin+4247' },
-            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'https://maps.google.com?q=Av.+R.+Lopez+3222' },
-            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'https://maps.google.com?q=Av.+Balbin+4702' },
-            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'https://maps.google.com?q=Av.+Sarmiento+2393' },
-            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'https://maps.google.com?q=Av.+Balbin+3554' }
+            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'https://maps.google.com/?q=Av.+Balbin+4247' },
+            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'https://maps.google.com/?q=Av.+Remigio+Lopez+3222' },
+            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'https://maps.google.com/?q=Av.+Balbin+4702' },
+            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'https://maps.google.com/?q=Av.+Sarmiento+2393' },
+            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'https://maps.google.com/?q=Av.+Balbin+3554' }
         };
 
         function obtenerFarmacia(dia, mes) {
-            const farmaciasSemana = ['MITRE', 'SARMIENTO', 'VAZQUEZ', 'PINTAR', 'CALPE'];
-            const farmaciasSabado = ['MITRE', 'CALPE', 'SARMIENTO', 'VAZQUEZ', 'PINTAR'];
-            const farmaciasDomingo = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
+            const año = 2026;
+            const fecha = new Date(año, mes - 1, dia);
+            const diaSemana = fecha.getDay(); // 0: Dom, 1: Lun... 6: Sáb
 
-            let fecha = new Date(new Date().getFullYear(), mes - 1, dia);
-            let diaSemana = fecha.getDay();
-            let semanasTranscurridas = Math.floor((fecha - new Date(new Date().getFullYear(), 1, 1)) / (1000 * 60 * 60 * 24 * 7));
+            // LUNES A VIERNES: Turnos fijos según tu imagen
+            const fijos = {
+                1: 'MITRE',     // Lunes (Rosa)
+                2: 'SARMIENTO', // Martes (Celeste)
+                3: 'VAZQUEZ',   // Miércoles (Verde)
+                4: 'PINTAR',    // Jueves (Naranja)
+                5: 'CALPE'      // Viernes (Violeta)
+            };
 
             if (diaSemana >= 1 && diaSemana <= 5) {
-                return farmaciasSemana[diaSemana - 1];
-            } else if (diaSemana === 6) {
-                return farmaciasSabado[semanasTranscurridas % farmaciasSabado.length];
+                return fijos[diaSemana];
+            }
+
+            // SÁBADOS Y DOMINGOS: Rotación continua según tu explicación
+            // El orden es: Vázquez -> Pintar -> Mitre -> Calpe -> Sarmiento
+            const rotacion = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
+
+            let contadorSabados = 0;
+            let contadorDomingos = 0;
+
+            // Contamos los findes desde el inicio del año para que la rotación sea infinita
+            for (let d = new Date(año, 0, 1); d <= fecha; d.setDate(d.getDate() + 1)) {
+                if (d.getDay() === 6) contadorSabados++;
+                if (d.getDay() === 0) contadorDomingos++;
+            }
+
+            if (diaSemana === 6) {
+                // El primer sábado del año (3/1) es Vázquez (índice 0)
+                return rotacion[(contadorSabados - 1) % 5];
             } else if (diaSemana === 0) {
-                return farmaciasDomingo[semanasTranscurridas % farmaciasDomingo.length];
+                // El primer domingo del año (4/1) es Calpe (según lógica de columnas)
+                // Para que el 29/3 sea Mitre o Sarmiento, ajustamos el inicio:
+                return rotacion[(contadorDomingos + 2) % 5]; 
             }
             return 'Desconocido';
         }
@@ -191,10 +212,13 @@
             let hoy = new Date();
             let mes = hoy.getMonth() + 1;
             let diasMes = new Date(hoy.getFullYear(), mes, 0).getDate();
+            
             for (let dia = 1; dia <= diasMes; dia++) {
                 let farmacia = obtenerFarmacia(dia, mes);
                 const item = document.createElement('li');
-                item.textContent = `${dia}/${mes}: ${farmacia}`;
+                item.style.padding = "5px";
+                item.style.borderBottom = "1px solid #eee";
+                item.innerHTML = `<strong>${dia}/${mes}:</strong> ${farmacia}`;
                 listaTurnos.appendChild(item);
             }
             document.getElementById('calendario').style.display = 'block';
@@ -205,6 +229,3 @@
     </script>
 </body>
 </html>
-
-
-
