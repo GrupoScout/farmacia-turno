@@ -3,155 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farmacia de Turno</title>
+    <title>Farmacia de Turno - San Miguel</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #04548c; color: #ffffff; margin: 0; padding: 0; }
         .container { padding: 20px; }
         h1 { background-color: #81e1ee; padding: 15px; margin: 0; color: #04548c; font-size: 1.8em; }
         .info { font-size: 1.5em; margin: 20px 0; }
         .info span { font-weight: bold; }
-        .buttons button { background-color: #67ad7f; color: white; border: none; padding: 10px 20px; margin: 10px; font-size: 1.2em; cursor: pointer; border-radius: 5px; }
+        .buttons button { background-color: #67ad7f; color: white; border: none; padding: 12px 20px; margin: 10px; font-size: 1.1em; cursor: pointer; border-radius: 5px; width: 80%; max-width: 300px; }
         .buttons button:hover { background-color: #338682; }
-        .calendar { display: none; margin-top: 20px; text-align: left; padding: 10px; background: white; color: black; max-width: 400px; margin-left: auto; margin-right: auto; border-radius: 5px; }
-        .footer { font-size: 1.2em; padding: 10px; background-color: #81e1ee; color: #04548c; margin-top: 40px; }
+        .calendar { display: none; margin-top: 20px; text-align: left; padding: 15px; background: white; color: black; max-width: 400px; margin-left: auto; margin-right: auto; border-radius: 8px; }
+        .footer { font-size: 1em; padding: 15px; background-color: #81e1ee; color: #04548c; margin-top: 40px; line-height: 1.4; }
         
-        .menu-toggle { position: fixed; top: 10px; right: 10px; background-color: #04548c; color: white; font-size: 26px; padding: 5px 10px; cursor: pointer; z-index: 1001; border-radius: 5px; }
-        .menu { display: none; position: fixed; top: 50px; right: 10px; background-color: white; color: #04548c; padding: 10px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; text-align: left; }
-        .menu a { display: block; color: #04548c; text-decoration: none; padding: 8px 0; font-weight: bold; border-bottom: 1px solid #ddd; }
+        /* Menú Hamburguesa */
+        .menu-toggle { position: fixed; top: 10px; right: 10px; background-color: #04548c; color: white; font-size: 26px; padding: 5px 12px; cursor: pointer; z-index: 1001; border-radius: 5px; border: 1px solid #81e1ee; }
+        .menu { display: none; position: fixed; top: 55px; right: 10px; background-color: white; color: #04548c; padding: 10px; border-radius: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 1000; text-align: left; min-width: 180px; }
+        .menu a { display: block; color: #04548c; text-decoration: none; padding: 10px 0; font-weight: bold; border-bottom: 1px solid #eee; }
         
-        /* Contador estético */
+        /* Contador Real en la esquina */
         #visit-counter { 
             position: fixed; bottom: 10px; right: 10px; 
-            background: rgba(255, 255, 255, 0.95); color: #04548c; 
-            padding: 8px 12px; border-radius: 8px; font-size: 13px; 
-            font-weight: bold; border: 2px solid #81e1ee; z-index: 2000; 
+            background: white; color: #04548c; 
+            padding: 6px 10px; border-radius: 6px; font-size: 13px; 
+            font-weight: bold; border: 1px solid #81e1ee; z-index: 2000;
+            display: flex; align-items: center; gap: 5px;
         }
 
-        @media (max-width: 600px) { h1 { font-size: 1.4em; padding: 20px 10px 40px 10px; } }
+        @media (max-width: 600px) { h1 { font-size: 1.4em; } .info { font-size: 1.2em; } }
     </style>
 </head>
 <body>
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="menu" id="menu">
-        <a href="https://wa.me/5491158183466?text=Hola%2C%20hay%20un%20error" target="_blank">Reportar un error</a>
-        <a href="https://docs.google.com/document/d/1ZqUQbGsARreoAL8PanRM4CI9rJgU4ycI9LXR2983LPY/edit?usp=sharing" target="_blank">Obras Sociales</a>
-    </div>
-
-    <h1>Farmacia de Turno</h1>
-
-    <div class="container">
-        <div class="info">
-            FARMACIA DE TURNO: <span id="farmaciaNombre"></span><br>
-            Dirección: <span id="farmaciaDireccion"></span><br>
-            Teléfono: <span id="farmaciaTelefono"></span>
-        </div>
-        <div class="buttons">
-            <button id="llamar">Llamar a la farmacia</button>
-            <button id="verMapa">Ver en el mapa</button>
-            <button id="verCalendario">Ver Calendario</button>
-        </div>
-        <div class="calendar" id="calendario">
-            <h3>Calendario de Turnos</h3>
-            <ul id="listaTurnos"></ul>
-        </div>
-    </div>
-
-    <div class="footer">GENTILEZA DE FARMACIA PINTAR | AV. REMIGIO LOPEZ 2393 | TEL 4455-5502 | 30 AÑOS 1994-2024</div>
-
-    <div id="visit-counter">Visitas este mes: <span id="count">0</span></div>
-
-    <script>
-        const farmacias = {
-            'MITRE': { direccion: 'Av. Balbín 4247', telefono: '4455-0206', mapa: 'http://maps.google.com/?q=Av+Balbin+4247' },
-            'SARMIENTO': { direccion: 'Av. R. López 3222', telefono: '11-5929-8980', mapa: 'http://maps.google.com/?q=Av+Remigio+Lopez+3222' },
-            'VAZQUEZ': { direccion: 'Av. Balbín 4702', telefono: '4455-6412', mapa: 'http://maps.google.com/?q=Av+Balbin+4702' },
-            'PINTAR': { direccion: 'Av. Sarmiento 2393', telefono: '4455-5502', mapa: 'http://maps.google.com/?q=Av+Sarmiento+2393' },
-            'CALPE': { direccion: 'Av. Balbín 3554', telefono: '4455-1514', mapa: 'http://maps.google.com/?q=Av+Balbin+3554' }
-        };
-
-        function obtenerFarmacia(dia, mes) {
-            const fecha = new Date(2026, mes - 1, dia);
-            const diaSemana = fecha.getDay(); 
-            const rotacion = ['VAZQUEZ', 'PINTAR', 'MITRE', 'CALPE', 'SARMIENTO'];
-            
-            if (diaSemana >= 1 && diaSemana <= 5) {
-                const fijos = {1:'MITRE', 2:'SARMIENTO', 3:'VAZQUEZ', 4:'PINTAR', 5:'CALPE'};
-                return fijos[diaSemana];
-            }
-
-            let contadorSab = 0, contadorDom = 0;
-            for (let d = new Date(2026, 0, 1); d <= fecha; d.setDate(d.getDate() + 1)) {
-                if (d.getDay() === 6) contadorSab++;
-                if (d.getDay() === 0) contadorDom++;
-            }
-            
-            if (diaSemana === 6) return rotacion[(contadorSab - 1) % 5];
-            if (diaSemana === 0) return rotacion[(contadorDom + 2) % 5];
-        }
-
-        // CONTADOR INTELIGENTE (1 EN 1 + SALTO EL DÍA 2)
-        function gestionarContador() {
-            const hoy = new Date();
-            const mesActual = hoy.getMonth();
-            const diaActual = hoy.getDate();
-            const storageKey = 'contador_visitas_farmacia';
-            const storageMonthKey = 'mes_contador';
-
-            // Si cambiamos de mes, reiniciamos el conteo
-            if (localStorage.getItem(storageMonthKey) != mesActual) {
-                localStorage.setItem(storageMonthKey, mesActual);
-                localStorage.setItem(storageKey, '0');
-            }
-
-            // Obtenemos el valor actual guardado
-            let visitas = parseInt(localStorage.getItem(storageKey)) || 0;
-            
-            // Sumamos 1 por esta visita
-            visitas++;
-            localStorage.setItem(storageKey, visitas.toString());
-
-            // Si es día 2 o más, mostramos el número + el "bono" de 250
-            let mostrarEnPantalla = visitas;
-            if (diaActual >= 2) {
-                mostrarEnPantalla += 250;
-            }
-
-            document.getElementById('count').innerText = mostrarEnPantalla;
-        }
-
-        function toggleMenu() {
-            const menu = document.getElementById('menu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function mostrarTurnoHoy() {
-            let hoy = new Date();
-            let n = obtenerFarmacia(hoy.getDate(), hoy.getMonth() + 1);
-            document.getElementById('farmaciaNombre').innerText = n;
-            document.getElementById('farmaciaDireccion').innerText = farmacias[n].direccion;
-            document.getElementById('farmaciaTelefono').innerText = farmacias[n].telefono;
-            document.getElementById('llamar').onclick = () => window.location.href = `tel:${farmacias[n].telefono}`;
-            document.getElementById('verMapa').onclick = () => window.open(farmacias[n].mapa, '_blank');
-        }
-
-        document.getElementById('verCalendario').onclick = () => {
-            const lista = document.getElementById('listaTurnos');
-            lista.innerHTML = '';
-            let hoy = new Date();
-            let mes = hoy.getMonth() + 1;
-            let diasMes = new Date(hoy.getFullYear(), mes, 0).getDate();
-            for (let d = 1; d <= diasMes; d++) {
-                let f = obtenerFarmacia(d, mes);
-                lista.innerHTML += `<li><strong>${d}/${mes}:</strong> ${f}</li>`;
-            }
-            document.getElementById('calendario').style.display = 'block';
-        };
-
-        window.onload = () => {
-            mostrarTurnoHoy();
-            gestionarContador();
-        };
-    </script>
-</body>
-</html>
-
+        <a href="https://wa.me/5491158183466?text=Hola%2C%20hay%20un%20error%20en%20los%20turnos" target="_blank">Reportar un error</a>
+        <a href="
